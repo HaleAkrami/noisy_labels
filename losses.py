@@ -63,17 +63,32 @@ class BetaCrossEnropyError(torch.nn.Module):
         return
 
     def forward(self, pred, labels):
-        max_val = pred.max(dim=1, keepdim=True)[0]
-        # max_val2 = torch.argmax(x[:, st:ed], dim=-1)
-        probs = F.softmax(pred - max_val, dim=1)
-        eps = 1e-8
-        single_prob = torch.sum(probs * torch.unsqueeze(labels, 1), dim=1)
-        single_prob = single_prob + (single_prob < eps) * eps
-        part1 = (self.beta + 1) /((self.beta) * (single_prob ** self.beta - 1)+eps)
+        #max_val = pred.max(dim=1, keepdim=True)[0]
+        #max_val2 = torch.argmax(x[:, st:ed], dim=-1)
+        #probs = F.softmax(pred - max_val, dim=1).to(self.device)
+        #eps = 1e-8
+        #label_one_hot = torch.nn.functional.one_hot(labels, self.num_classes).float().to(self.device)
 
-        part2 = (probs ** (self.beta + 1)).sum(dim=1, keepdims=True)
-        bce=torch.mean(- part1 + part2)
+        #single_prob = torch.sum(probs * label_one_hot, dim=1)
+        #single_prob = single_prob + (single_prob < eps) * eps
+        #part1 = (self.beta + 1) /((self.beta) * (single_prob ** self.beta - 1)+eps)
+
+        #part2 = (probs ** (self.beta + 1)).sum(dim=1, keepdims=True)
+        #bce=torch.mean(- part1 + part2)
+
+
+        probs = F.softmax(pred,dim=1).to(self.device)
+
+        ns = labels.shape[0]
+
+        C = -(self.beta + 1) / self.beta
+
+
+        term1 = C * (torch.pow(probs[range(ns), labels], self.beta) - 1 )  # This needs to be checked!!!!!!!!!
+        term2 = torch.sum(torch.pow(probs , self.beta + 1), dim=1)
+
+        bce = torch.mean(term1 + term2)
         #
-        return -self.scale * bce
+        return self.scale * bce
 
 

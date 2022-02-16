@@ -67,7 +67,7 @@ elif args.loss == 'MAE':
 elif args.loss == 'RCE':
     loss_func = RCE(NUMClass, args.device)
 elif args.loss == 'BCE':
-    loss_func = BCE(NUMClass, args.device, 0.00000001)
+    loss_func = BCE(NUMClass, args.device, 1, 0.00000001)
 else:
     loss_func = nn.CrossEntropyLoss()
 
@@ -92,6 +92,7 @@ def train(num_epochs, cnn, loaders):
 
             output = cnn(b_x)[0]
             loss = loss_func(output, b_y)
+            #print(loss)
 
             # clear gradients for this training step
             optimizer.zero_grad()
